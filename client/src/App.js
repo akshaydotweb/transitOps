@@ -1,14 +1,11 @@
 'use client';
+import { EmailPasswordAuth } from "supertokens-auth-react/recipe/emailpassword";
 
-import { Content, Theme } from '@carbon/react';
-
-export function Providers({ children }) {
-  return (
-    <div>
-      <Theme theme="g100">
-        
-      </Theme>
-      <Content>{children}</Content>
-    </div>
-  );
+function ClientDashboard() {
+    return (
+        <EmailPasswordAuth>
+            <div>Client Dashboard</div>
+        </EmailPasswordAuth>
+    );
 }
+
