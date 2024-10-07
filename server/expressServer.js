@@ -1,23 +1,34 @@
-const express = require("express");
-const supertokens = require("supertokens-node");
-const {middleware, errorHandler } = require("supertockens-node/framework/express");
-const cors = require("cors");
+// server.js
+const express = require('express');
+const mysql = require('mysql2');  // Import MySQL
+
 const app = express();
+const port = 3001;
 
-require("./supertokensConfig");
+// Create a MySQL connection pool
+const db = mysql.createConnection({
+    host: 'localhost',     
+    user: 'root',      
+    password: '1001',  
+    database: 'transitops',
+	port : 3306
+});
 
-//Middleware for SuperTokens
-app.use(cors({
-	origin: "http://localhost:3000",
-	allowedHeaders: ["content-type", ...supertokens.getAllCORSHeader()],
-	credentials: true
-}));
+// Connect to MySQL
+db.connect((err) => {
+    if (err) {
+        console.error('Error connecting to MySQL:', err);
+    } else {
+        console.log('Connected to MySQL!');
+    }
+});
 
-app.use(middleware());
+app.use(express.json());
 
-// this is the routes
+app.get('/', (req, res) => {
+    res.send('Welcome to the Train Management System');
+});
 
-app.use(errorHandler());
-
-app.listen(3001, () => console.log("API server running on port 3001"));
-
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+});
