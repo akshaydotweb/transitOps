@@ -1,0 +1,15 @@
+@use '@/home/dashboard-page';
+@use '@/components/navbar';
+@use '@/components/form-components/form';
+
+@media (min-width: 42em) {
+  .cds--grid--no-gutter {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+.cds--content {
+  margin-top: 3rem;
+  background: var(--cds-background);
+}

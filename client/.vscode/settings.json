@@ -1,0 +1,19 @@
+{
+    "sqltools.connections": [
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 3001,
+            "driver": "MySQL",
+            "name": "transitops_connection",
+            "group": "group1",
+            "database": "transitops",
+            "username": "root",
+            "password": "1001"
+        }
+    ]
+}
