@@ -51,14 +51,6 @@ const BookingForm = () => {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   };
 
-  useEffect(() => {
-  setFormData((prevData) => ({
-    ...prevData,
-    departureDate: formatDateTime(new Date(prevData.departureDate)),
-    returnDate: formatDateTime(new Date(prevData.returnDate)),
-  }));
-  }, [formData.departureDate, formData.returnDate]);
-
   const handleSubmit = async (e) => {
   e.preventDefault();
   console.log('Form Data:', formData);
