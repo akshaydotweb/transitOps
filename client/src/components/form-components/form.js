@@ -1,131 +1,182 @@
-import React, { useEffect, useState } from 'react';
-import { DatePicker, DatePickerInput, Dropdown, Button, ComboBox } from '@carbon/react';
+import React, { useState, useEffect } from 'react';
+import {
+  ComboBox,
+  DatePicker,
+  DatePickerInput,
+  Dropdown,
+  Button,
+  Form,
+  Stack,
+  InlineLoading,
+  DataTable,
+  Table,
+  TableHead,
+  TableRow,
+  TableHeader,
+  TableBody,
+  TableCell,
+  TableContainer
+} from '@carbon/react';
+
+const headers = [
+  { key: 'train_number', header: 'Train Number' },
+  { key: 'train_name', header: 'Train Name' },
+  { key: 'from_station', header: 'From' },
+  { key: 'to_station', header: 'To' },
+  { key: 'class', header: 'Class' },
+  { key: 'date', header: 'Date' },
+  { key: 'availability', header: 'Availability' }
+];
 
 const BookingForm = () => {
-  
   const [stations, setStations] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [matchingTrains, setMatchingTrains] = useState([]);
   const [formData, setFormData] = useState({
-  from: '',
-  to: '',
-  departureDate: '',
-  travelClass: '',
+    from: '',
+    to: '',
+    departureDate: '',
+    travelClass: ''
   });
 
   useEffect(() => {
-  const fetchStations = async () => {
-    try {
-    const response = await fetch('http://localhost:3001/stations');
-    const data = await response.json();
-    const stationNames = data.map(stations => stations.station_name);
-    setStations(stationNames);
-    } catch (error) {
-    console.error('Error fetching station names: ', error);
-    }
-  };
-
-  fetchStations();
+    const fetchStations = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/stations');
+        if (!response.ok) throw new Error('Failed to fetch stations');
+        const data = await response.json();
+        const stationNames = data.map(station => station.station_name);
+        setStations(stationNames);
+      } catch (error) {
+        console.error('Error fetching stations:', error);
+      }
+    };
+    fetchStations();
   }, []);
 
-  const handleChange = (e) => {
-  const { name, value } = e.target;
-  setFormData({ ...formData, [name]: value });
-  };
-
-  const handleDateChange = (name, dates) => {
-  const date = dates[0]; // Assuming single date selection
-  setFormData({ ...formData, [name]: date });
-  };
-
-  const handleDropdownChange = ({ selectedItem }) => {
-  setFormData({ ...formData, travelClass: selectedItem });
-  };
-
-  const formatDateTime = (date) => {
-  if (!date) return '';
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  const seconds = String(date.getSeconds()).padStart(2, '0');
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-  };
-
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  console.log('Form Data:', formData);
-
-  try {
-    const response = await fetch('http://localhost:3001/submit-form', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(formData),
-    });
-
-    if (response.ok) {
-    console.log('Form data submitted successfully');
-    } else {
-    console.error('Error submitting form data');
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      const response = await fetch('http://localhost:3001/trains');
+      const allTrains = await response.json();
+      
+      // Filter trains based on form criteria
+      const filtered = allTrains.filter(train => 
+        train.from_station === formData.from &&
+        train.to_station === formData.to &&
+        train.class === formData.travelClass
+      );
+      
+      setMatchingTrains(filtered);
+    } catch (error) {
+      console.error('Error searching trains:', error);
+    } finally {
+      setIsLoading(false);
     }
-  } catch (error) {
-    console.error('Error:', error);
-  }
   };
-
-  const presentDate = new Date();
-  const futureDate = new Date();
-  futureDate.setMonth(presentDate.getMonth() + 4);
 
   return (
-  <form onSubmit={handleSubmit}>
-    <ComboBox
-    id="from"
-    name="from"
-    titleText="From"
-    items={stations}
-    selectedItem={formData.from}
-    onChange={({ selectedItem }) => setFormData({ ...formData, from: selectedItem })}
-    placeholder="Select a station"
-    required
-    />
-    <ComboBox
-    id="to"
-    name="to"
-    titleText="To"
-    items={stations}
-    selectedItem={formData.to}
-    onChange={({ selectedItem }) => setFormData({ ...formData, to: selectedItem })}
-    placeholder="Select a station"
-    required
-    />
+    <div>
+      <Form onSubmit={handleSubmit}>
+        <Stack gap={6}>
+          <ComboBox
+            id="from-station"
+            titleText="From"
+            items={stations}
+            selectedItem={formData.from}
+            onChange={({ selectedItem }) => 
+              setFormData(prev => ({ ...prev, from: selectedItem }))
+            }
+            itemToString={(item) => item}
+            placeholder="Select departure station"
+            required
+          />
 
-    <DatePicker
-    dateFormat="m/d/Y"
-    datePickerType="single"
-    minDate={presentDate}
-    maxDate={futureDate}
-    onChange={(dates) => handleDateChange('departureDate', dates)}
-    >
-    <DatePickerInput
-      id="departure-date"
-      name="departureDate"
-      placeholder="mm/dd/yyyy"
-      labelText="Departure Date"
-      onChange={handleChange}
-      required
-    />
-    </DatePicker>
-    <Dropdown
-    id="travel-class"
-    titleText="Travel Class"
-    label="Select travel class"
-    items={['2A','3A','SL', 'CC', '2S','FC', '1A','3E']}
-    onChange={handleDropdownChange}
-    />
-    <Button type="submit">Submit</Button>
-  </form>
+          <ComboBox
+            id="to-station"
+            titleText="To"
+            items={stations.filter(station => station !== formData.from)}
+            selectedItem={formData.to}
+            onChange={({ selectedItem }) =>
+              setFormData(prev => ({ ...prev, to: selectedItem }))
+            }
+            itemToString={(item) => item}
+            placeholder="Select arrival station"
+            required
+          />
+
+          <DatePicker
+            datePickerType="single"
+            dateFormat="m/d/Y"
+            onChange={dates => 
+              setFormData(prev => ({ ...prev, departureDate: dates[0] }))
+            }
+          >
+            <DatePickerInput
+              id="departure-date"
+              placeholder="MM/DD/YYYY"
+              labelText="Departure Date"
+              required
+            />
+          </DatePicker>
+
+          <Dropdown
+            id="travel-class"
+            titleText="Travel Class"
+            labelText="Select travel class"
+            items={[
+              'AC First Class',
+              'AC 2 Tier', 
+              'AC 3 Tier',
+              'Sleeper Class'
+            ]}
+            selectedItem={formData.travelClass}
+            onChange={({ selectedItem }) =>
+              setFormData(prev => ({ ...prev, travelClass: selectedItem }))
+            }
+            required
+          />
+
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? (
+              <InlineLoading description="Searching..." />
+            ) : (
+              'Search Trains'
+            )}
+          </Button>
+        </Stack>
+      </Form>
+
+      {matchingTrains.length > 0 && (
+        <TableContainer title="Matching Trains" style={{ marginTop: '2rem', width: '50rem' }}>
+          <DataTable rows={matchingTrains} headers={headers}>
+            {({ rows, headers, getHeaderProps, getRowProps }) => (
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    {headers.map(header => (
+                      <TableHeader key={header.key} {...getHeaderProps({ header })}>
+                        {header.header}
+                      </TableHeader>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {rows.map(row => (
+                    <TableRow key={row.id} {...getRowProps({ row })}>
+                      {row.cells.map(cell => (
+                        <TableCell key={cell.id}>{cell.value}</TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </DataTable>
+        </TableContainer>
+      )}
+    </div>
   );
 };
 

@@ -3,7 +3,11 @@ const mysql = require('mysql');
 const cors = require('cors');
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:3000',
+  methods: ['GET', 'POST'],
+  credentials: true
+}));
 app.use(express.json());
 
 const connection = mysql.createConnection({
@@ -25,8 +29,8 @@ app.get('/trains', (req, res) => {
   });
 });
 
-app.get('/stations', (req, res) => {
-    connection.query('SELECT station_name FROM stations', (err, results) => {
+app.get('/stationNames', (req, res) => {
+    connection.query('SELECT station_name FROM stationNames', (err, results) => {
       if (err) throw err;
       res.json(results);
     });
