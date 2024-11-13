@@ -42,7 +42,7 @@ const BookingForm = () => {
   useEffect(() => {
     const fetchStations = async () => {
       try {
-        const response = await fetch('http://localhost:3001/stations');
+        const response = await fetch('http://localhost:3001/stationNames');
         if (!response.ok) throw new Error('Failed to fetch stations');
         const data = await response.json();
         const stationNames = data.map(station => station.station_name);
@@ -138,7 +138,8 @@ const BookingForm = () => {
             required
           />
 
-          <Button type="submit" disabled={isLoading}>
+          <Button type="submit" disabled={isLoading}
+          style={{ margin: '3rem 0'}}>
             {isLoading ? (
               <InlineLoading description="Searching..." />
             ) : (
